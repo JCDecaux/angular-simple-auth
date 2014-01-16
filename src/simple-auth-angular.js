@@ -117,12 +117,12 @@ angular.module('simpleAuth', ['LocalStorageModule', 'base64'])
       }
     };
   }])
-  .controller('AuthLoginCtrl', ['simpleAuth', '$scope', function(simpleAuth, $scope) {
+  .controller('SimpleAuthLoginCtrl', ['simpleAuth', '$scope', function(simpleAuth, $scope) {
     $scope.login = function() {
       simpleAuth.login($scope.username, $scope.password);
     };
   }])
-  .controller('AuthLogoutCtrl', ['simpleAuth', function(simpleAuth) {
+  .controller('SimpleAuthLogoutCtrl', ['simpleAuth', function(simpleAuth) {
     simpleAuth.logout();
   }])
   .directive('showIfAuth', ['$animate', 'simpleAuth', function($animate, simpleAuth) {
@@ -137,10 +137,10 @@ angular.module('simpleAuth', ['LocalStorageModule', 'base64'])
     $routeProvider
       .when('/login', {
         templateUrl: 'views/login.html',
-        controller: 'AuthLoginCtrl'
+        controller: 'SimpleAuthLoginCtrl'
       })
       .when('/logout', {
         template: 'Logging out...',
-        controller: 'AuthLogoutCtrl'
+        controller: 'SimpleAuthLogoutCtrl'
       });
   }]);
