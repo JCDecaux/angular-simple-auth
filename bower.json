@@ -3,7 +3,8 @@
   "version": "1.0.0-SNAPSHOT",
   "main": "dist/simple-auth-angular.min.js",
   "dependencies": {
-    "base64-angular": "~1.0.0"
+    "base64-angular": "~1.0.0",
+    "angular-local-storage": "v0.1"
   },
   "ignore": [
     "**/.*",
