@@ -8,6 +8,11 @@ angular.module('simpleAuth', ['LocalStorageModule', 'base64'])
     var sessionExpiration = 60;
     var redirectAfterLogout = '/';
     var authorizationName = 'SimpleAuth';
+    var getTokenFn = function (username, password, processToken, error) {
+      angular.injector(['base64']).invoke(function(Base64) {
+        processToken(Base64.encode(username + ':' + password));
+      });
+    };
 
     this.sessionExpiration = function(value) {
       sessionExpiration = value;
@@ -24,6 +29,11 @@ angular.module('simpleAuth', ['LocalStorageModule', 'base64'])
       return this;
     };
 
+    this.getToken = function(value) {
+      getTokenFn = value;
+      return this;
+    };
+
     this.$get = ['localStorageService', 'Base64', '$location',function(ls, Base64, $location) {
 
       var currentLocation = null;
@@ -34,13 +44,17 @@ angular.module('simpleAuth', ['LocalStorageModule', 'base64'])
       };
 
       var login = function(username, password) {
-        ls.set('auth-token', Base64.encode(username + ':' + password));
-        if(currentLocation !== null) {
-          $location.path(currentLocation);
-        } else {
-          $location.path('/');
+        var finishLogin = function(token) {
+          ls.set('auth-token', token);
+          if(currentLocation !== null) {
+            $location.path(currentLocation);
+          } else {
+            $location.path('/');
+          }
+          currentLocation = null;
         }
-        currentLocation = null;
+        var error = function() {};
+        getTokenFn(username, password, finishLogin, error);
       };
 
       var logout = function() {
@@ -66,7 +80,7 @@ angular.module('simpleAuth', ['LocalStorageModule', 'base64'])
         $location.path('/login');
       };
 
-      var getToken = function() {
+      var getStoredToken = function() {
         return ls.get('auth-token');
       };
 
@@ -84,7 +98,7 @@ angular.module('simpleAuth', ['LocalStorageModule', 'base64'])
         'setLastLogin': setLastLogin,
         'checkSessionValidity': checkSessionValidity,
         'requestLogin': requestLogin,
-        'getToken': getToken,
+        'getStoredToken': getStoredToken,
         'getAuthorizationName' : getAuthorizationName,
         'isLoggedIn': isLoggedIn
       };
@@ -95,7 +109,7 @@ angular.module('simpleAuth', ['LocalStorageModule', 'base64'])
 
     return {
       'request': function(config) {
-        var token = simpleAuth.getToken();
+        var token = simpleAuth.getStoredToken();
         isAuthenticatedRequest = token !== null;
         if(isAuthenticatedRequest) {
           config.headers.Authorization = simpleAuth.getAuthorizationName() + ' ' + token;
