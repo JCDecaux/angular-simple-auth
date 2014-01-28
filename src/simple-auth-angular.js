@@ -10,7 +10,7 @@ angular.module('simpleAuth', ['LocalStorageModule', 'base64'])
     var sessionExpiration = 60;
     var redirectAfterLogout = '/';
     var authorizationName = 'SimpleAuth';
-    var getTokenFn = function (username, password, processToken, error) {
+    var getTokenFn = function (username, password, processToken) {
       angular.injector(['base64']).invoke(function(Base64) {
         processToken(Base64.encode(username + ':' + password));
       });
@@ -54,7 +54,7 @@ angular.module('simpleAuth', ['LocalStorageModule', 'base64'])
             $location.path('/');
           }
           currentLocation = null;
-        }
+        };
         var error = function() {};
         getTokenFn(username, password, finishLogin, error);
       };
