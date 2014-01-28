@@ -5,6 +5,8 @@ angular.module('simpleAuth', ['LocalStorageModule', 'base64'])
 
     angular.module('LocalStorageModule').value('prefix', 'auth-module');
 
+    var self = this;
+
     var sessionExpiration = 60;
     var redirectAfterLogout = '/';
     var authorizationName = 'SimpleAuth';
@@ -16,22 +18,22 @@ angular.module('simpleAuth', ['LocalStorageModule', 'base64'])
 
     this.sessionExpiration = function(value) {
       sessionExpiration = value;
-      return this;
+      return self;
     };
 
     this.redirectAfterLogout = function(value) {
       redirectAfterLogout = value;
-      return this;
+      return self;
     };
 
     this.authorizationName = function(value) {
       authorizationName = value;
-      return this;
+      return self;
     };
 
     this.getToken = function(value) {
       getTokenFn = value;
-      return this;
+      return self;
     };
 
     this.$get = ['localStorageService', 'Base64', '$location',function(ls, Base64, $location) {
