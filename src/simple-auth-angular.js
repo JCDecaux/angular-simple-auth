@@ -46,7 +46,12 @@ angular.module('simpleAuth', ['LocalStorageModule', 'base64'])
       };
 
       var login = function(username, password) {
-        var finishLogin = function(token) {
+        var finishLogin = function(token, optionalProps) {
+          if(angular.isDefined(optionalProps)) {
+            angular.forEach(optionalProps, function(value, key) {
+              ls.set(key, value);
+            });
+          }
           ls.set('auth-token', token);
           if(currentLocation !== null) {
             $location.path(currentLocation);
