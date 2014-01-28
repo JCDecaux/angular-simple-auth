@@ -90,6 +90,18 @@ angular.module('simpleAuth', ['LocalStorageModule', 'base64'])
         return authorizationName;
       };
 
+      var putParam = function(key, value) {
+        ls.set(key, value);
+      };
+
+      var getParam = function(key, defaultValue) {
+        var res = ls.get(key);
+        if(angular.isDefined(defaultValue) && res === null) {
+          return defaultValue;
+        }
+        return res;
+      };
+
       if(!isLoggedIn()) {
         ls.clearAll();
       }
@@ -102,7 +114,9 @@ angular.module('simpleAuth', ['LocalStorageModule', 'base64'])
         'requestLogin': requestLogin,
         'getStoredToken': getStoredToken,
         'getAuthorizationName' : getAuthorizationName,
-        'isLoggedIn': isLoggedIn
+        'isLoggedIn': isLoggedIn,
+        'putParam': putParam,
+        'getParam': getParam
       };
     }];
   })
