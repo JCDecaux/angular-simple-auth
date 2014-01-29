@@ -125,7 +125,7 @@ angular.module('simpleAuth', ['LocalStorageModule', 'base64'])
       };
     }];
   })
-  .factory('simpleAuthHttpInterceptor', ['simpleAuth', function(simpleAuth) {
+  .factory('simpleAuthHttpInterceptor', ['$q', 'simpleAuth', function($q, simpleAuth) {
     var isAuthenticatedRequest = false;
 
     return {
@@ -135,20 +135,20 @@ angular.module('simpleAuth', ['LocalStorageModule', 'base64'])
         if(isAuthenticatedRequest) {
           config.headers.Authorization = simpleAuth.getAuthorizationName() + ' ' + token;
         }
-        return config;
+        return config || $q.when(config);
       },
       'response': function(response) {
         if(isAuthenticatedRequest) {
           simpleAuth.setLastLogin();
         }
         simpleAuth.checkSessionValidity();
-        return response;
+        return response || $q.when(config);
       },
-      'responseError': function(response) {
-        if(response.status === 401) {
+      'responseError': function(rejection) {
+        if(rejection.status === 401) {
           simpleAuth.requestLogin();
         }
-        return response;
+        return $q.reject(rejection);
       }
     };
   }])
