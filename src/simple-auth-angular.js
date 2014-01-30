@@ -7,18 +7,12 @@ angular.module('simpleAuth', ['LocalStorageModule', 'base64'])
 
     var self = this;
 
-    var sessionExpiration = 60;
     var redirectAfterLogout = '/';
     var authorizationName = 'SimpleAuth';
     var getTokenFn = function (username, password, processToken) {
       angular.injector(['base64']).invoke(function(Base64) {
         processToken(Base64.encode(username + ':' + password));
       });
-    };
-
-    this.sessionExpiration = function(value) {
-      sessionExpiration = value;
-      return self;
     };
 
     this.redirectAfterLogout = function(value) {
@@ -36,13 +30,13 @@ angular.module('simpleAuth', ['LocalStorageModule', 'base64'])
       return self;
     };
 
-    this.$get = ['localStorageService', 'Base64', '$location',function(ls, Base64, $location) {
+    this.$get = ['localStorageService', '$location',function(ls, $location) {
 
-      var currentLocation = null;
+      var currentLocation = undefined;
 
       var isLoggedIn = function() {
         var lastLogin = ls.get('last-login');
-        return lastLogin !== null && Date.now() - lastLogin <= sessionExpiration * 1000;
+        return lastLogin !== null;
       };
 
       var login = function(username, password) {
@@ -53,12 +47,12 @@ angular.module('simpleAuth', ['LocalStorageModule', 'base64'])
             });
           }
           ls.set('auth-token', token);
-          if(currentLocation !== null) {
+          if(angular.isDefined(currentLocation)) {
             $location.path(currentLocation);
           } else {
             $location.path('/');
           }
-          currentLocation = null;
+          currentLocation = undefined;
         };
         var error = function() {};
         getTokenFn(username, password, finishLogin, error);
