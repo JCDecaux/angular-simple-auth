@@ -32,7 +32,7 @@ angular.module('simpleAuth', ['LocalStorageModule', 'base64'])
 
     this.$get = ['localStorageService', '$location',function(ls, $location) {
 
-      var currentLocation = undefined;
+      var currentLocation;
 
       var isLoggedIn = function() {
         var lastLogin = ls.get('last-login');
@@ -136,7 +136,7 @@ angular.module('simpleAuth', ['LocalStorageModule', 'base64'])
           simpleAuth.setLastLogin();
         }
         simpleAuth.checkSessionValidity();
-        return response || $q.when(config);
+        return response || $q.when(response);
       },
       'responseError': function(rejection) {
         if(rejection.status === 401) {
