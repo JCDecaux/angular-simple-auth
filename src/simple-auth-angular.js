@@ -58,9 +58,11 @@ angular.module('simpleAuth', ['LocalStorageModule', 'base64'])
         getTokenFn(username, password, finishLogin, error);
       };
 
-      var logout = function() {
+      var logout = function(options) {
         ls.clearAll();
-        $location.path(redirectAfterLogout);
+        if(angular.isDefined(options.redirect) && options.redirect === true) {
+          $location.path(redirectAfterLogout);
+        }
       };
 
       var setLastLogin = function() {
