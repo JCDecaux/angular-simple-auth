@@ -60,7 +60,7 @@ angular.module('simpleAuth', ['LocalStorageModule', 'base64'])
 
       var logout = function(options) {
         ls.clearAll();
-        if(angular.isDefined(options.redirect) && options.redirect === true) {
+        if(angular.isUndefined(options.redirect) || options.redirect === true) {
           $location.path(redirectAfterLogout);
         }
       };
