@@ -156,9 +156,11 @@ angular.module('simpleAuth', ['LocalStorageModule', 'base64'])
       $scope.hasLoginError = false;
       simpleAuth
         .login($scope.username, $scope.password)
-        .then(function(){ $scope.$apply(); })
-        .catch(function() {
+        .catch( function() {
           $scope.hasLoginError = true;
+        })
+        .finally(function() {
+          $scope.$apply();
         });
     };
   }])
