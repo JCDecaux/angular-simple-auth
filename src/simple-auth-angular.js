@@ -58,9 +58,6 @@ angular.module('simpleAuth', ['LocalStorageModule', 'base64'])
               $location.path(redirectAfterLogin);
             }
             currentLocation = undefined;
-          })
-          .catch(function(rejection) {
-            console.log(rejection);
           });
       };
 
@@ -156,7 +153,13 @@ angular.module('simpleAuth', ['LocalStorageModule', 'base64'])
   }])
   .controller('SimpleAuthLoginCtrl', ['simpleAuth', '$scope', function(simpleAuth, $scope) {
     $scope.login = function() {
-      simpleAuth.login($scope.username, $scope.password).then(function(){ $scope.$apply(); });
+      $scope.hasLoginError = false;
+      simpleAuth
+        .login($scope.username, $scope.password)
+        .then(function(){ $scope.$apply(); })
+        .catch(function() {
+          $scope.hasLoginError = true;
+        });
     };
   }])
   .controller('SimpleAuthLogoutCtrl', ['simpleAuth', function(simpleAuth) {
