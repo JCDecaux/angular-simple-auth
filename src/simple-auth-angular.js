@@ -8,15 +8,17 @@ angular.module('simpleAuth', ['LocalStorageModule', 'base64'])
     var self = this;
 
     var redirectAfterLogout = '/';
+    var redirectAfterLogin = '/';
     var authorizationName = 'SimpleAuth';
-    var getTokenFn = function (username, password, processToken) {
-      angular.injector(['base64']).invoke(function(Base64) {
-        processToken(Base64.encode(username + ':' + password));
-      });
-    };
+    var getTokenFn;
 
     this.redirectAfterLogout = function(value) {
       redirectAfterLogout = value;
+      return self;
+    };
+
+    this.redirectAfterLogin = function(value) {
+      redirectAfterLogin = value;
       return self;
     };
 
@@ -30,7 +32,7 @@ angular.module('simpleAuth', ['LocalStorageModule', 'base64'])
       return self;
     };
 
-    this.$get = ['localStorageService', '$location',function(ls, $location) {
+    this.$get = ['localStorageService', '$location', function(ls, $location) {
 
       var currentLocation;
 
@@ -40,22 +42,26 @@ angular.module('simpleAuth', ['LocalStorageModule', 'base64'])
       };
 
       var login = function(username, password) {
-        var finishLogin = function(token, optionalProps) {
-          if(angular.isDefined(optionalProps)) {
-            angular.forEach(optionalProps, function(value, key) {
-              ls.set(key, value);
-            });
-          }
-          ls.set('auth-token', token);
-          if(angular.isDefined(currentLocation)) {
-            $location.path(currentLocation);
-          } else {
-            $location.path('/');
-          }
-          currentLocation = undefined;
-        };
-        var error = function() {};
-        getTokenFn(username, password, finishLogin, error);
+        return getTokenFn(username, password)
+          .then(function(result) {
+            ls.set('auth-token', result[0]);
+
+            if(result.length > 1) {
+              angular.forEach(result[1], function(value, key) {
+                ls.set(key, value);
+              });
+            }
+
+            if(angular.isDefined(currentLocation)) {
+              $location.path(currentLocation);
+            } else {
+              $location.path(redirectAfterLogin);
+            }
+            currentLocation = undefined;
+          })
+          .catch(function(rejection) {
+            console.log(rejection);
+          });
       };
 
       var logout = function(options) {
@@ -150,7 +156,7 @@ angular.module('simpleAuth', ['LocalStorageModule', 'base64'])
   }])
   .controller('SimpleAuthLoginCtrl', ['simpleAuth', '$scope', function(simpleAuth, $scope) {
     $scope.login = function() {
-      simpleAuth.login($scope.username, $scope.password);
+      simpleAuth.login($scope.username, $scope.password).then(function(){ $scope.$apply(); });
     };
   }])
   .controller('SimpleAuthLogoutCtrl', ['simpleAuth', function(simpleAuth) {
