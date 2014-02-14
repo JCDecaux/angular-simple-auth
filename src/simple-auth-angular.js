@@ -5,47 +5,67 @@ angular.module('simpleAuth', ['LocalStorageModule', 'base64'])
 
     angular.module('LocalStorageModule').value('prefix', 'auth-module');
 
-    var sessionExpiration = 60;
-    var redirectAfterLogout = '/';
-    var authorizationName = 'SimpleAuth';
+    var self = this;
 
-    this.sessionExpiration = function(value) {
-      sessionExpiration = value;
-      return this;
-    };
+    var redirectAfterLogout = '/';
+    var redirectAfterLogin = '/';
+    var authorizationName = 'SimpleAuth';
+    var getTokenFn;
 
     this.redirectAfterLogout = function(value) {
       redirectAfterLogout = value;
-      return this;
+      return self;
+    };
+
+    this.redirectAfterLogin = function(value) {
+      redirectAfterLogin = value;
+      return self;
     };
 
     this.authorizationName = function(value) {
       authorizationName = value;
-      return this;
+      return self;
     };
 
-    this.$get = ['localStorageService', 'Base64', '$location',function(ls, Base64, $location) {
+    this.getToken = function(value) {
+      getTokenFn = value;
+      return self;
+    };
 
-      var currentLocation = null;
+    this.$get = ['localStorageService', '$location', function(ls, $location) {
+
+      var currentLocation;
 
       var isLoggedIn = function() {
         var lastLogin = ls.get('last-login');
-        return lastLogin !== null && Date.now() - lastLogin <= sessionExpiration * 1000;
+        return lastLogin !== null;
       };
 
       var login = function(username, password) {
-        ls.set('auth-token', Base64.encode(username + ':' + password));
-        if(currentLocation !== null) {
-          $location.path(currentLocation);
-        } else {
-          $location.path('/');
-        }
-        currentLocation = null;
+        return getTokenFn(username, password)
+          .then(function(result) {
+            ls.set('auth-token', result[0]);
+
+            if(result.length > 1) {
+              angular.forEach(result[1], function(value, key) {
+                ls.set(key, value);
+              });
+            }
+
+            if(angular.isDefined(currentLocation)) {
+              $location.path(currentLocation);
+            } else {
+              $location.path(redirectAfterLogin);
+            }
+            currentLocation = undefined;
+          });
       };
 
-      var logout = function() {
+      var logout = function(options) {
         ls.clearAll();
-        $location.path(redirectAfterLogout);
+        if(angular.isUndefined(options) || angular.isUndefined(options.redirect) || options.redirect === true) {
+          $location.path(redirectAfterLogout);
+        }
       };
 
       var setLastLogin = function() {
@@ -66,12 +86,24 @@ angular.module('simpleAuth', ['LocalStorageModule', 'base64'])
         $location.path('/login');
       };
 
-      var getToken = function() {
+      var getStoredToken = function() {
         return ls.get('auth-token');
       };
 
       var getAuthorizationName = function() {
         return authorizationName;
+      };
+
+      var putParam = function(key, value) {
+        ls.set(key, value);
+      };
+
+      var getParam = function(key, defaultValue) {
+        var res = ls.get(key);
+        if(angular.isDefined(defaultValue) && res === null) {
+          return defaultValue;
+        }
+        return res;
       };
 
       if(!isLoggedIn()) {
@@ -84,42 +116,52 @@ angular.module('simpleAuth', ['LocalStorageModule', 'base64'])
         'setLastLogin': setLastLogin,
         'checkSessionValidity': checkSessionValidity,
         'requestLogin': requestLogin,
-        'getToken': getToken,
+        'getStoredToken': getStoredToken,
         'getAuthorizationName' : getAuthorizationName,
-        'isLoggedIn': isLoggedIn
+        'isLoggedIn': isLoggedIn,
+        'putParam': putParam,
+        'getParam': getParam
       };
     }];
   })
-  .factory('simpleAuthHttpInterceptor', ['simpleAuth', function(simpleAuth) {
+  .factory('simpleAuthHttpInterceptor', ['$q', 'simpleAuth', function($q, simpleAuth) {
     var isAuthenticatedRequest = false;
 
     return {
       'request': function(config) {
-        var token = simpleAuth.getToken();
+        var token = simpleAuth.getStoredToken();
         isAuthenticatedRequest = token !== null;
         if(isAuthenticatedRequest) {
           config.headers.Authorization = simpleAuth.getAuthorizationName() + ' ' + token;
         }
-        return config;
+        return config || $q.when(config);
       },
       'response': function(response) {
         if(isAuthenticatedRequest) {
           simpleAuth.setLastLogin();
         }
         simpleAuth.checkSessionValidity();
-        return response;
+        return response || $q.when(response);
       },
-      'responseError': function(response) {
-        if(response.status === 401) {
+      'responseError': function(rejection) {
+        if(rejection.status === 401) {
           simpleAuth.requestLogin();
         }
-        return response;
+        return $q.reject(rejection);
       }
     };
   }])
   .controller('SimpleAuthLoginCtrl', ['simpleAuth', '$scope', function(simpleAuth, $scope) {
     $scope.login = function() {
-      simpleAuth.login($scope.username, $scope.password);
+      $scope.hasLoginError = false;
+      simpleAuth
+        .login($scope.username, $scope.password)
+        .catch( function() {
+          $scope.hasLoginError = true;
+        })
+        .finally(function() {
+          $scope.$apply();
+        });
     };
   }])
   .controller('SimpleAuthLogoutCtrl', ['simpleAuth', function(simpleAuth) {
