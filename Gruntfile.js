@@ -7,7 +7,7 @@ module.exports = function(grunt) {
     uglify: {
       build: {
         files: {
-          'dist/simple-auth-angular.min.js': ['src/simple-auth-angular.js']
+          'dist/angular-simple-auth.min.js': ['src/angular-simple-auth.js']
         }
       }
     },
