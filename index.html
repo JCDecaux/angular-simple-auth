@@ -1,0 +1,152 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Angular-simple-auth by JCDecaux</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>Angular-simple-auth</h1>
+        <p>An angular module for authentication</p>
+
+        <p class="view"><a href="https://github.com/JCDecaux/angular-simple-auth">View the Project on GitHub <small>JCDecaux/angular-simple-auth</small></a></p>
+
+
+        <ul>
+          <li><a href="https://github.com/JCDecaux/angular-simple-auth/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/JCDecaux/angular-simple-auth/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/JCDecaux/angular-simple-auth">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <h2>
+<a name="simple-auth-for-angular" class="anchor" href="#simple-auth-for-angular"><span class="octicon octicon-link"></span></a>Simple Auth For Angular</h2>
+
+<p>This project provides an AngularJS 1.X module to manage authentication in a web application.</p>
+
+<p>The philosophy of this project is that you code the web application and your REST endpoints without worrying about security. And when it works, you add a filter on the server side responsible for authentication, and this module on the client side to add authentication on your requests.</p>
+
+<p>This module is based on HTTP. It requires that your server answers with a 401 status when authentication is needed. And it MUST use the Authorization header coming from the client to authenticate requests.</p>
+
+<h2>
+<a name="components" class="anchor" href="#components"><span class="octicon octicon-link"></span></a>Components</h2>
+
+<p>There are several components in this module, each is here to help you add authentication to your app:</p>
+
+<ul>
+<li>
+<strong>HTTP interceptor</strong> it is responsible for adding the Authorization header, and to detect when login should be shown to a user</li>
+<li>
+<strong>simpleAuthProvider</strong> Used for configuration, and internally by the other components, this component is responsible for session management</li>
+<li>
+<strong>LoginCtrl</strong> Controller for login, all is here, you just have to create the view</li>
+<li>
+<strong>LogoutCtrl</strong> Controller for logout. All is here</li>
+<li>
+<strong>showIfAuth Directive</strong> A directive that you can use. It works as ng-show for when a user is authenticated</li>
+<li>
+<strong>Default routes</strong> Two routes are registered automatically: <code>/login</code> and <code>/logout</code>
+</li>
+</ul><h2>
+<a name="usage" class="anchor" href="#usage"><span class="octicon octicon-link"></span></a>Usage</h2>
+
+<p>How can you use this module? It's as easy as 4 steps: installation, configuration...</p>
+
+<h3>
+<a name="installation" class="anchor" href="#installation"><span class="octicon octicon-link"></span></a>Installation</h3>
+
+<p>This module is provided as a bower component. Installing it is as easy as:</p>
+
+<pre><code>bower install angular-simple-auth#1.2.0 --save
+</code></pre>
+
+<p>If you use yeoman and its angular generator, the script tags should be generated automatically for you. If not, you have to include 3 files (this module and its dependencies):</p>
+
+<pre><code>&lt;script src="bower_components/base64-angular/dist/base64-angular.min.js"&gt;&lt;/script&gt;
+&lt;script src="bower_components/angular-local-storage/angular-local-storage.js"&gt;&lt;/script&gt;
+&lt;script src="bower_components/angular-simple-auth/dist/angular-simple-auth.min.js"&gt;&lt;/script&gt;
+</code></pre>
+
+<h3>
+<a name="configuration" class="anchor" href="#configuration"><span class="octicon octicon-link"></span></a>Configuration</h3>
+
+<p>Here's how this module can be configured</p>
+
+<pre><code>angular.module('myApp', ['simpleAuth'])
+  .config(['simpleAuthProvider', function(simpleAuthProvider) {
+    simpleAuthProvider
+      .authorizationName('Token')
+      .getToken( function(username, password) {
+        var $http = angular.injector(['ng']).get('$http');
+        return $http
+          .post('/api/sessions', {
+            'username': username,
+            'password': password
+          })
+          .then( function(response) {
+            var data = response.data;
+            return [data.token, { 'user-id': data.userId }];
+          });
+      })
+      .redirectAfterLogin('/account')
+      .redirectAfterLogout('/goodbye');
+  });
+</code></pre>
+
+<ul>
+<li>Mandatory:
+
+<ul>
+<li>
+<strong>authorizationName</strong>: The scheme of the authorization: 'Authorization: '</li>
+<li>
+<strong>getToken</strong>: A function used to retrieve the token for authentication. It should return a promise that resolves to an array containing at least one element: the token. The second element can be an object that will indicates what other elements should be stored locally for the session duration.</li>
+</ul>
+</li>
+<li>Optional:
+
+<ul>
+<li>
+<strong>redirectAfterLogin</strong>: the route to which redirect after a successful login</li>
+<li>
+<strong>redirectAfterLogout</strong>: the route to which redirect after logout</li>
+</ul>
+</li>
+</ul><h3>
+<a name="login-form" class="anchor" href="#login-form"><span class="octicon octicon-link"></span></a>Login form</h3>
+
+<p>You must create the login view in the file <code>views/login.html</code>. The form should bind to two scope variables: username and password. Finally the login button must call the login() method.</p>
+
+<h3>
+<a name="users-session" class="anchor" href="#users-session"><span class="octicon octicon-link"></span></a>User's session</h3>
+
+<p>There's a simili of user session that one can use. In the previous configuration an additional value was stored in the session with the key <code>user-id</code>. To use it in your application, all you ahve to do is to add <code>simpleAuth</code> as your controller dependency and call <code>simpleAuth.getParam('user-id')</code>.</p>
+
+<h2>
+<a name="license" class="anchor" href="#license"><span class="octicon octicon-link"></span></a>License</h2>
+
+<p>This project is givent to the public domain. You're free to do whatever you want with it.</p>
+
+<h2>
+<a name="contributing" class="anchor" href="#contributing"><span class="octicon octicon-link"></span></a>Contributing</h2>
+
+<p>When contributing code, you must specify that you give your work to the public domain without condition. We accept Pull Requests that are automatically mergeable and that respect the formatting of the project (there is a .editorconfig file that your IDE/text editor can use).</p>
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/JCDecaux">JCDecaux</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="javascripts/scale.fix.js"></script>
+    
+  </body>
+</html>
