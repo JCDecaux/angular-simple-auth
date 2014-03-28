@@ -15,6 +15,9 @@
   "bugs": {
     "url": "https://github.com/JCDecaux/angular-simple-auth/issues"
   },
+  "scripts": {
+    "test": "grunt dist"
+  },
   "devDependencies": {
     "grunt": "~0.4.1",
     "grunt-contrib-uglify": "~0.2.2",
