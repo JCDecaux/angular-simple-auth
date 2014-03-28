@@ -1,6 +1,6 @@
 {
   "name": "angular-simple-auth",
-  "version": "1.2.0",
+  "version": "1.2.1-SNAPSHOT",
   "main": "dist/angular-simple-auth.min.js",
   "dependencies": {
     "base64-angular": "~1.0.0",
