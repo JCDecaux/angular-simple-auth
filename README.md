@@ -1,8 +1,8 @@
 ## Simple Auth For Angular
 
-This project provides an AngularJS module to manage authentication in a web application.
+This project provides an AngularJS 1.X module to manage authentication in a web application.
 
-The philosophy of this project is that you code the web application and your REST endpoints without worrying about security. And when it works, you add a filter on the server side responsible for authentication, and this module on the client side to add authentication bits on your requests.
+The philosophy of this project is that you code the web application and your REST endpoints without worrying about security. And when it works, you add a filter on the server side responsible for authentication, and this module on the client side to add authentication on your requests.
 
 This module is based on HTTP. It requires that your server answers with a 401 status when authentication is needed. And it MUST use the Authorization header coming from the client to authenticate requests.
 
@@ -26,7 +26,7 @@ How can you use this module? It's as easy as 4 steps: installation, configuratio
 This module is provided as a bower component. Installing it is as easy as:
 
 ```
-bower install angular-simple-auth --save
+bower install angular-simple-auth#1.2.0 --save
 ```
 
 If you use yeoman and its angular generator, the script tags should be generated automatically for you. If not, you have to include 3 files (this module and its dependencies):
@@ -39,7 +39,7 @@ If you use yeoman and its angular generator, the script tags should be generated
 
 ### Configuration
 
-In your application configuration, there are two mandatory parameters:
+Here's how this module can be configured
 
 ```
 angular.module('myApp', ['simpleAuth'])
@@ -72,6 +72,10 @@ angular.module('myApp', ['simpleAuth'])
 ### Login form
 
 You must create the login view in the file `views/login.html`. The form should bind to two scope variables: username and password. Finally the login button must call the login() method.
+
+### User's session
+
+There's a simili of user session that one can use. In the previous configuration an additional value was stored in the session with the key `user-id`. To use it in your application, all you ahve to do is to add `simpleAuth` as your controller dependency and call `simpleAuth.getParam('user-id')`.
 
 ## License
 
